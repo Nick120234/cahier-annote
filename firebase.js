@@ -1,13 +1,14 @@
 // Connexion Firebase (Google) + stockage Firestore — Mon cahier annoté
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {initializeAuth,indexedDBLocalPersistence,browserLocalPersistence,browserPopupRedirectResolver,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,memoryLocalCache,doc,getDoc,setDoc,deleteDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const cfg=window.FIREBASE_CONFIG;
 if(!cfg||!cfg.apiKey||/COLLER/.test(cfg.apiKey)){window.appNoConfig&&window.appNoConfig();}
 else{
   const app=initializeApp(cfg);
-  const auth=getAuth(app);
+  // Session conservée sur l'appareil (IndexedDB, puis localStorage en secours) : pas de reconnexion à chaque ouverture
+  const auth=initializeAuth(app,{persistence:[indexedDBLocalPersistence,browserLocalPersistence],popupRedirectResolver:browserPopupRedirectResolver});
   let db;
   try{db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})})}
   catch(e){db=initializeFirestore(app,{localCache:memoryLocalCache()})}
