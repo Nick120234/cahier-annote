@@ -107,6 +107,16 @@ body.sel .im.on .x{display:inline-flex;position:absolute;top:4px;right:4px;width
 .page:hover .del,.del:focus-visible,.del.armed{opacity:1}
 @media(hover:none){.del{opacity:.85}}
 .del.armed{background:#c0262d;border-color:#c0262d;color:#fff}
+/* ----- fenêtre après partage ----- */
+.modal{position:fixed;inset:0;z-index:45;background:rgba(30,20,10,.38);display:flex;align-items:center;justify-content:center;padding:20px}
+.modalBox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;max-width:420px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modalBox h3{margin:0 0 8px;font-size:20px}
+.modalBox{width:min(440px,100%)}.mSub{color:var(--mute);margin:0 0 14px;line-height:1.5}.mSub b{color:var(--ink)}
+#sendStep1 .smAct{margin-bottom:8px}.smAct small{font-weight:400;opacity:.8}
+.s2Lines{margin:0 0 12px;padding-left:20px;line-height:1.5}.s2Lines li{margin:4px 0}
+.s2Links{display:grid;gap:8px;margin-bottom:14px}.s2Links a{width:100%;height:48px;justify-content:flex-start;text-decoration:none}.modalBox p{margin:0 0 18px;color:var(--mute);line-height:1.5}.modalBox b{color:var(--ink)}
+.modalActs{display:flex;gap:10px;justify-content:flex-end}.modalActs button{height:46px;padding:0 18px}
+button.danger{background:#c0262d;border-color:#c0262d;color:#fff;font-weight:600}
 /* ----- menu feuille ----- */
 .sheetMenu{position:fixed;z-index:20;width:min(330px,calc(100vw - 16px));background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 18px 40px rgba(60,40,20,.2)}
 .smTitle{margin:0 0 8px;font-size:13px;font-weight:600;color:var(--mute)}
@@ -118,6 +128,10 @@ body.sel .im.on .x{display:inline-flex;position:absolute;top:4px;right:4px;width
 .smHint{margin:4px 2px 12px;font-size:12.5px;color:var(--mute)}.smHint:last-child{margin-bottom:0}
 svg.caret{width:14px;height:14px;margin-left:-2px}
 /* ----- divers ----- */
+#splash{position:fixed;inset:0;z-index:55;background:var(--bg);display:flex;align-items:center;justify-content:center}
+#splash .splashIn{text-align:center;color:var(--mute);font-size:15px}
+#splash .splashLogo{width:64px;height:64px;margin:0 auto 14px;border-radius:18px;background:var(--acc);animation:pulse 1.2s ease-in-out infinite alternate}
+@keyframes pulse{from{opacity:.55;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
 #login{position:fixed;inset:0;z-index:50;background:radial-gradient(circle at 30% 20%,var(--card),var(--bg) 70%);display:flex;align-items:center;justify-content:center;padding:20px}
 .logbox{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:clamp(24px,5vw,40px);max-width:420px;text-align:center;box-shadow:0 20px 50px rgba(60,40,20,.12)}
 .logbox h2{font-size:30px;margin:0 0 8px;letter-spacing:-.01em}.logbox p{color:var(--mute)}
@@ -143,7 +157,8 @@ svg.caret{width:14px;height:14px;margin-left:-2px}
 </style>
 </head>
 <body>
-<div id="login" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+<div id="splash" aria-live="polite"><div class="splashIn"><div class="splashLogo"></div><p>Ouverture de vos cahiers…</p></div></div>
+<div id="login" role="dialog" aria-modal="true" aria-labelledby="loginTitle" hidden>
   <div class="logbox">
     <svg class="logo xl" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#e8590c"/><rect x="10" y="8" width="19" height="24" rx="3" fill="#fffaf2"/><path d="M14 8v24" stroke="#f0a070" stroke-width="1.6"/><path d="M17 15h8M17 19h8M17 23h5" stroke="#e7d9c6" stroke-width="1.6"/><path d="M24 29l9-12 2.5 1.8-9 12L23 32z" fill="#2b2520"/></svg>
     <h2 id="loginTitle">Mon cahier annoté</h2>
@@ -192,6 +207,7 @@ svg.caret{width:14px;height:14px;margin-left:-2px}
     <h1 id="docTitle"></h1>
     <span id="status"></span>
     <button class="ghost themeBtn" type="button" aria-label="Changer le thème (jour / nuit)"></button>
+    <button id="shareBtn" class="soft" title="Envoyer le PDF annoté (mail, Outlook, messages…)"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a1 1 0 001 1h12a1 1 0 001-1v-7"/></svg><span class="tlabel">Envoyer</span></button>
     <button id="dl" class="primary" hidden title="Télécharger le PDF annoté"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M4 19h16"/></svg><span class="tlabel">Télécharger le PDF</span></button>
   </div>
   <div class="tools" role="toolbar" aria-label="Outils">
@@ -221,6 +237,24 @@ svg.caret{width:14px;height:14px;margin-left:-2px}
     </div>
   </div>
 </header>
+<div class="modal" id="sendModal" hidden role="dialog" aria-modal="true" aria-labelledby="sendTitle"><div class="modalBox">
+  <div id="sendStep1">
+    <h3 id="sendTitle">Envoyer le PDF annoté</h3>
+    <p class="mSub"><b class="sendName"></b></p>
+    <button type="button" class="smAct primary" id="sendNative"><span class="smIco">✉︎</span><span>Appli Outlook, Mail, Messages…</span></button>
+    <button type="button" class="smAct soft" id="sendOutlook"><span class="smIco">O</span><span>Outlook sur le web</span></button>
+    <button type="button" class="smAct" id="sendOther"><span class="smIco">@</span><span>Autre messagerie (Gmail, Mail…)</span></button>
+    <button type="button" class="smAct" id="sendDl"><span class="smIco">⤓</span><span>Télécharger seulement</span></button>
+    <div class="modalActs"><button type="button" class="ghost" id="sendCancel">Annuler</button></div>
+  </div>
+  <div id="sendStep2" hidden>
+    <h3 id="s2Title">PDF prêt</h3>
+    <ol id="s2Lines" class="s2Lines"></ol>
+    <div id="s2Links" class="s2Links"></div>
+    <p class="mSub">Une fois votre message envoyé, vous pouvez supprimer <b class="sendName"></b> de l'appli pour libérer de la place. Ses pages et vos annotations seront effacées définitivement.</p>
+    <div class="modalActs"><button type="button" id="asKeep" class="soft">Garder</button><button type="button" id="asDel" class="danger">Supprimer</button></div>
+  </div>
+</div></div>
 <div class="sheetMenu" id="sheetMenu" hidden role="dialog" aria-label="Ajouter une feuille">
   <p class="smTitle">Type de feuille</p>
   <div class="smTypes">
@@ -660,7 +694,9 @@ async function importDocx(f,name){
   busy("Lecture du fichier Word…",0);
   try{await loadScript(LIBS.jszip);await loadAny(LIBS.docx);await loadScript(LIBS.h2c)}catch(e){throw new Error("lib")}
   const box=$("#render");box.replaceChildren();
-  await window.docx.renderAsync(await f.arrayBuffer(),box,null,{inWrapper:false,breakPages:true,ignoreLastRenderedPageBreak:false,experimental:true,useBase64URL:true,renderComments:false});
+  await window.docx.renderAsync(await f.arrayBuffer(),box,null,{inWrapper:false,breakPages:true,ignoreLastRenderedPageBreak:false,experimental:true,useBase64URL:true,renderComments:false,renderAltChunks:false,renderChanges:false});
+  box.querySelectorAll("script,iframe,object,embed,link[rel=import],form").forEach(e=>e.remove());
+  box.querySelectorAll("*").forEach(e=>{for(const a of [...e.attributes])if(/^on/i.test(a.name)||/^\s*javascript:/i.test(a.value))e.removeAttribute(a.name)});
   try{await document.fonts.ready}catch(e){}
   await Promise.all([...box.querySelectorAll("img")].map(i=>i.complete?0:new Promise(r=>{i.onload=i.onerror=r})));
   const secs=[...box.querySelectorAll("section")].filter(s=>s.offsetHeight>0);
@@ -899,38 +935,79 @@ async function save(d,P){const key=d.id+"-"+P.id;if(!d.pages.includes(P.pg))retu
   writing[key]=false;if(again[key]){again[key]=false;save(d,P)}}
 
 /* ---------- export PDF ---------- */
-async function exportPdf(){
-  const b=$("#dl");if(!window.jspdf){say("Export PDF indisponible (bibliothèque non chargée)");return}
-  b.disabled=true;b.textContent="Préparation…";
-  try{
-    const{jsPDF}=window.jspdf;let pdf=null;
-    for(const P of pages){
-      if(P.pg.a&&!P.pg.tmp){try{const u=await blobURL(P.pg.a);if(P.img.src!==u){P.img.src=u}}catch(e){}}
+async function buildPdf(){
+  if(!window.jspdf)throw new Error("lib");
+  const{jsPDF}=window.jspdf;let pdf=null;
+  for(const P of pages){
+    if(P.pg.a&&!P.pg.tmp){try{const u=await blobURL(P.pg.a);if(P.img.src!==u){P.img.src=u}}catch(e){}}
       if(!P.img.complete||!P.img.naturalWidth)await new Promise(r=>{P.img.onload=r;P.img.onerror=r;setTimeout(r,8000)});
-      const W=P.img.naturalWidth||P.pg.w,H=P.img.naturalHeight||P.pg.h,c=document.createElement("canvas");c.width=W;c.height=H;
-      const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,H);x.drawImage(P.img,0,0,W,H);
-      for(const o of P.imgs){try{const i=await loadImg(await imSrcAsync(o));x.drawImage(i,o.x*W,o.y*H,o.w*W,o.w*W*o.r)}catch(e){}}
-      for(const s of P.strokes)drawStroke(x,s,W,H);
-      const pw=595.28,ph=pw*H/W,or=pw>ph?"l":"p";
-      if(!pdf)pdf=new jsPDF({unit:"pt",format:[pw,ph],orientation:or});else pdf.addPage([pw,ph],or);
-      pdf.addImage(c.toDataURL("image/jpeg",.86),"JPEG",0,0,pw,ph);
-    }
-    const fn=(doc.name.replace(/[\\/:*?"<>|]+/g," ").trim()||"document")+"_annote.pdf";
-    {const u=URL.createObjectURL(pdf.output("blob")),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000)}say("PDF téléchargé");
-  }catch(e){if(e&&e.code==="declined")say("Téléchargement annulé");else if(e&&e.code==="host_unavailable")say("Ouvrez la page dans un navigateur pour télécharger");else say("Le téléchargement n'a pas abouti")}
-  b.disabled=false;b.textContent="Télécharger le PDF annoté";
+    const W=P.img.naturalWidth||P.pg.w,H=P.img.naturalHeight||P.pg.h,c=document.createElement("canvas");c.width=W;c.height=H;
+    const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,H);x.drawImage(P.img,0,0,W,H);
+    for(const o of P.imgs){try{const i=await loadImg(await imSrcAsync(o));x.drawImage(i,o.x*W,o.y*H,o.w*W,o.w*W*o.r)}catch(e){}}
+    for(const s of P.strokes)drawStroke(x,s,W,H);
+    const pw=595.28,ph=pw*H/W,or=pw>ph?"l":"p";
+    if(!pdf)pdf=new jsPDF({unit:"pt",format:[pw,ph],orientation:or});else pdf.addPage([pw,ph],or);
+    pdf.addImage(c.toDataURL("image/jpeg",.86),"JPEG",0,0,pw,ph);
+  }
+  return{blob:pdf.output("blob"),fn:(doc.name.replace(/[\\/:*?"<>|]+/g," ").trim()||"document")+"_annote.pdf"};
+}
+async function exportPdf(){
+  const b=$("#dl"),lab=b.innerHTML;b.disabled=true;b.textContent="Préparation…";
+  try{const{blob,fn}=await buildPdf();
+    dlBlob(blob,fn);say("PDF téléchargé");
+  }catch(e){if(e&&e.message==="lib")say("Export PDF indisponible (bibliothèque non chargée)");else if(e&&e.code==="declined")say("Téléchargement annulé");else if(e&&e.code==="host_unavailable")say("Ouvrez la page dans un navigateur pour télécharger");else say("Le téléchargement n'a pas abouti")}
+  b.disabled=false;b.innerHTML=lab;
 }
 $("#dl").onclick=exportPdf;
 
 /* ---------- démarrage (Firebase) ---------- */
+function dlBlob(blob,fn){const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000)}
+const canShareFiles=(()=>{try{return!!(navigator.canShare&&navigator.share&&navigator.canShare({files:[new File(["x"],"t.pdf",{type:"application/pdf"})]}))}catch(e){return false}})();
+let sendBlob=null,sendFn="",sendDoc=null;
+const sm=()=>document.getElementById("sendModal");
+function openSend(){if(!doc||!sm())return;sendDoc=doc;sendBlob=null;
+  sm().querySelectorAll(".sendName").forEach(e=>e.textContent="« "+doc.name+" »");
+  document.getElementById("sendNative").hidden=!canShareFiles;
+  document.getElementById("sendStep1").hidden=false;document.getElementById("sendStep2").hidden=true;sm().hidden=false}
+async function makePdf(btn){if(sendBlob)return true;const lab=btn.innerHTML;btn.disabled=true;btn.textContent="Préparation du PDF…";
+  try{const r=await buildPdf();sendBlob=r.blob;sendFn=r.fn;return true}catch(e){say(e&&e.message==="lib"?"Export PDF indisponible (vérifiez la connexion)":"La création du PDF a échoué");return false}
+  finally{btn.disabled=false;btn.innerHTML=lab}}
+function step2(title,lines,links){document.getElementById("s2Title").textContent=title;
+  const ol=document.getElementById("s2Lines");ol.replaceChildren(...lines.map(t=>{const li=document.createElement("li");li.textContent=t;return li}));ol.hidden=!lines.length;
+  const box=document.getElementById("s2Links");box.replaceChildren(...links.map(l=>{const a=document.createElement("a");a.className="btn smAct soft";a.href=l.href;a.target="_blank";a.rel="noopener";a.textContent=l.label;return a}));
+  document.getElementById("sendStep1").hidden=true;document.getElementById("sendStep2").hidden=false}
+const mailText=()=>({subject:sendDoc.name,body:"Bonjour,\n\nVous trouverez ci-joint le document « "+sendDoc.name+" ».\n\nBonne journée"});
+const enc=encodeURIComponent;
+{const S=id=>document.getElementById(id);
+  if(S("shareBtn"))S("shareBtn").onclick=openSend;
+  if(sm()){
+    S("sendCancel").onclick=()=>{sm().hidden=true};
+    sm().addEventListener("pointerdown",e=>{if(e.target===sm())sm().hidden=true});
+    S("sendNative").onclick=async()=>{if(!await makePdf(S("sendNative")))return;
+      try{await navigator.share({files:[new File([sendBlob],sendFn,{type:"application/pdf"})],title:sendDoc.name});step2("Document envoyé",[],[])}
+      catch(e){if(!(e&&e.name==="AbortError"))say("Le partage n'a pas abouti : essayez « Outlook sur le web »")}};
+    S("sendOutlook").onclick=async()=>{if(!await makePdf(S("sendOutlook")))return;dlBlob(sendBlob,sendFn);const m=mailText(),q="?subject="+enc(m.subject)+"&body="+enc(m.body);
+      step2("PDF téléchargé",["Le fichier « "+sendFn+" » est dans vos téléchargements.","Ouvrez Outlook ci-dessous : un nouveau message est déjà prêt.","Ajoutez le fichier en pièce jointe (trombone), saisissez l'adresse, puis envoyez."],
+        [{label:"Ouvrir Outlook — compte pro / école",href:"https://outlook.office.com/mail/deeplink/compose"+q},{label:"Ouvrir Outlook.com — compte personnel",href:"https://outlook.live.com/mail/0/deeplink/compose"+q}])};
+    S("sendOther").onclick=async()=>{if(!await makePdf(S("sendOther")))return;dlBlob(sendBlob,sendFn);const m=mailText();
+      step2("PDF téléchargé",["Le fichier « "+sendFn+" » est dans vos téléchargements.","Ouvrez votre messagerie, ajoutez le fichier en pièce jointe et envoyez."],
+        [{label:"Ouvrir ma messagerie",href:"mailto:?subject="+enc(m.subject)+"&body="+enc(m.body)},{label:"Ouvrir Gmail",href:"https://mail.google.com/mail/?view=cm&fs=1&su="+enc(m.subject)+"&body="+enc(m.body)}])};
+    S("sendDl").onclick=async()=>{if(!await makePdf(S("sendDl")))return;dlBlob(sendBlob,sendFn);step2("PDF téléchargé",["Le fichier « "+sendFn+" » est dans vos téléchargements."],[])};
+    S("asKeep").onclick=()=>{sm().hidden=true};
+    S("asDel").onclick=async()=>{const d=sendDoc;sm().hidden=true;if(!d)return;doc=null;$("#docView").hidden=true;$("#libView").hidden=false;await deleteDoc(d);renderLib();window.scrollTo(0,0);say("Document supprimé : place libérée")};
+  }
+}
+
 let LS="cahier-";
 $("#dl").hidden=false;
 $("#loginBtn").onclick=async()=>{$("#loginMsg").textContent="";try{await window.fbLogin()}catch(e){$("#loginMsg").textContent="Connexion impossible : "+(e&&e.code||"erreur")+". Vérifiez que les fenêtres pop-up sont autorisées."}};
 $("#logoutBtn").onclick=async()=>{try{await window.fbLogout()}catch(e){}};
-window.appNoConfig=()=>{$("#loginMsg").textContent="Configuration Firebase manquante : remplissez le fichier config.js.";$("#loginBtn").disabled=true};
-window.onFirebaseLogout=()=>{FB=null;col=null;assets=null;lib=[];doc=null;$("#docView").hidden=true;$("#libView").hidden=false;$("#login").hidden=false};
+const hideSplash=()=>{const sp=document.getElementById("splash");if(sp)sp.hidden=true};
+setTimeout(()=>{const sp=document.getElementById("splash");if(sp&&!sp.hidden&&!FB){sp.hidden=true;$("#login").hidden=false}},12000);
+window.appNoConfig=()=>{hideSplash();$("#login").hidden=false;$("#loginMsg").textContent="Configuration Firebase manquante : remplissez le fichier config.js.";$("#loginBtn").disabled=true};
+window.onFirebaseLogout=()=>{hideSplash();FB=null;col=null;assets=null;lib=[];doc=null;$("#docView").hidden=true;$("#libView").hidden=false;$("#login").hidden=false};
 window.onFirebaseUser=async(api)=>{
-  FB=api;LS="cahier-"+api.uid+"-";$("#login").hidden=true;
+  FB=api;LS="cahier-"+api.uid+"-";$("#login").hidden=true;hideSplash();
   col=api.kv;
   assets={upload:async blob=>{const id=uid();const d=await toDataURLLimited(blob);await FB.blobs.put(id,d);blobCache[id]=URL.createObjectURL(blob);return{id}},delete:async id=>{await FB.blobs.del(id)}};
   {const l=parseLib(localStorage.getItem(LS+"lib")||"null");lib=(l||[]).filter(d=>d.id!==SEED.id);}
